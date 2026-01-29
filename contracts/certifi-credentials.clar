@@ -1,3 +1,18 @@
+;; Student can expire their own credential
+(define-public (expire-credential (credential-id uint))
+  (let ((credential (unwrap! (map-get? credentials { credential-id: credential-id }) ERR-CREDENTIAL-NOT-FOUND)))
+    ;; Only the student can expire their credential
+    (asserts! (is-eq tx-sender (get student credential)) ERR-UNAUTHORIZED)
+    ;; Only if not already revoked or expired
+    (asserts! (is-eq (get status credential) STATUS-ACTIVE) ERR-NOT-REVOKED)
+    ;; Update credential status
+    (map-set credentials
+      { credential-id: credential-id }
+      (merge credential { status: STATUS-EXPIRED })
+    )
+    (ok true)
+  )
+)
 ;; Certifi Credentials Contract
 ;; Manages credential issuance, verification, and revocation
 ;; Built on Stacks Blockchain
